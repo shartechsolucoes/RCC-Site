@@ -30,7 +30,9 @@ async function getLatestNews(): Promise<NewsItem[]> {
 
 interface PublicPost {
   id: string;
+  title: string | null;
   content: string;
+  eventDate: string | null;
   createdAt: string;
   author: { member: { fullName: string } | null };
 }
@@ -104,8 +106,8 @@ export default async function Home() {
           {publicPosts.length > 0 ? (
             publicPosts.map((post) => (
               <div key={post.id} className="flex flex-col justify-center gap-1 px-8 py-6">
-                <p className="text-sm font-semibold tracking-wide text-zinc-900 line-clamp-1">{post.author?.member?.fullName ?? "Aviso"}</p>
-                <p className="text-sm text-amber-600">{formatDate(post.createdAt)}</p>
+                <p className="text-sm font-semibold tracking-wide text-zinc-900 line-clamp-1">{post.title || post.author?.member?.fullName || "Aviso"}</p>
+                <p className="text-sm text-amber-600">{formatDate(post.eventDate || post.createdAt)}</p>
                 <p className="text-xs tracking-wide text-zinc-500 line-clamp-3 whitespace-pre-line">{post.content}</p>
               </div>
             ))
