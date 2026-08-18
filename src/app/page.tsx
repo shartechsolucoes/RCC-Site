@@ -28,6 +28,24 @@ async function getLatestNews(): Promise<NewsItem[]> {
   }
 }
 
+interface PublicPost {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: { member: { fullName: string } | null };
+}
+
+async function getPublicMural(): Promise<PublicPost[]> {
+  try {
+    const res = await fetch(`${API_URL}/mural/public`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const posts: PublicPost[] = await res.json();
+    return posts.slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
 const FEATURES = [
   { title: "Missões", body: "Sede Sóbrio, Casais, Leigos e Juventude.", icon: Compass },
   { title: "Ministérios", body: "Teatro, Intercessão, Música e Comunicação.", icon: Mic2 },
@@ -35,14 +53,9 @@ const FEATURES = [
   { title: "Comunidade", body: "Perfil, jornada e histórico de participação.", icon: Users },
 ];
 
-const HIGHLIGHTS = [
-  { title: "ENCONTROS", time: "Sábados 19h", detail: "PARTILHA E FORMAÇÃO" },
-  { title: "MISSÕES", time: "1º Domingo", detail: "SERVIÇO NA COMUNIDADE" },
-  { title: "JUVENTUDE", time: "Sextas 20h", detail: "GRUPO DE ORAÇÃO" },
-];
-
 export default async function Home() {
   const latestNews = await getLatestNews();
+  const publicPosts = await getPublicMural();
 
   return (
     <main className="flex flex-1 flex-col">
@@ -88,13 +101,19 @@ export default async function Home() {
           <p className="text-lg font-semibold text-zinc-900">Próximos Encontros</p>
         </div>
         <div className="grid flex-1 grid-cols-1 divide-y divide-zinc-100 bg-white sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-          {HIGHLIGHTS.map((item) => (
-            <div key={item.title} className="flex flex-col justify-center gap-1 px-8 py-6">
-              <p className="text-sm font-semibold tracking-wide text-zinc-900">{item.title}</p>
-              <p className="text-sm text-amber-600">{item.time}</p>
-              <p className="text-xs tracking-wide text-zinc-500">{item.detail}</p>
+          {publicPosts.length > 0 ? (
+            publicPosts.map((post) => (
+              <div key={post.id} className="flex flex-col justify-center gap-1 px-8 py-6">
+                <p className="text-sm font-semibold tracking-wide text-zinc-900 line-clamp-1">{post.author?.member?.fullName ?? "Aviso"}</p>
+                <p className="text-sm text-amber-600">{formatDate(post.createdAt)}</p>
+                <p className="text-xs tracking-wide text-zinc-500 line-clamp-3 whitespace-pre-line">{post.content}</p>
+              </div>
+            ))
+          ) : (
+            <div className="flex flex-col justify-center gap-1 px-8 py-6 sm:col-span-3">
+              <p className="text-sm text-zinc-500">Nenhum aviso público no momento.</p>
             </div>
-          ))}
+          )}
         </div>
       </section>
 
