@@ -89,13 +89,13 @@ export function Header() {
 
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-3 text-white/80 sm:flex">
-              <a href="#" aria-label="Facebook" className="flex h-7 w-7 items-center justify-center rounded-full border border-white/30 transition-colors hover:border-white hover:text-white">
+              <a href="https://www.facebook.com/share/1DD1nVmcUt/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex h-7 w-7 items-center justify-center rounded-full border border-white/30 transition-colors hover:border-white hover:text-white">
                 <FacebookIcon className="h-3.5 w-3.5" />
               </a>
-              <a href="#" aria-label="Instagram" className="flex h-7 w-7 items-center justify-center rounded-full border border-white/30 transition-colors hover:border-white hover:text-white">
+              <a href="https://www.instagram.com/ocaminhoespiritosanto?igsh=Mzd5a3h4OWNoaDky" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-7 w-7 items-center justify-center rounded-full border border-white/30 transition-colors hover:border-white hover:text-white">
                 <InstagramIcon className="h-3.5 w-3.5" />
               </a>
-              <a href="#" aria-label="YouTube" className="flex h-7 w-7 items-center justify-center rounded-full border border-white/30 transition-colors hover:border-white hover:text-white">
+              <a href="https://www.youtube.com/channel/UCDD5939XpXII7U9g0gEIOUg" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="flex h-7 w-7 items-center justify-center rounded-full border border-white/30 transition-colors hover:border-white hover:text-white">
                 <YoutubeIcon className="h-3.5 w-3.5" />
               </a>
             </div>
