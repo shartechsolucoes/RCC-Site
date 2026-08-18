@@ -32,7 +32,7 @@ import { useState } from "react";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "A RCC", href: "/sobre" },
+  { label: "RCC", href: "/sobre" },
   { label: "Nossa Jornada", href: "/jornada" },
   { label: "Missões", href: "/missoes" },
   { label: "Notícias", href: "/noticias" },
