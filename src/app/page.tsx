@@ -73,28 +73,13 @@ export default async function Home() {
         </div>
 
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
-        <div className="relative flex flex-col items-center gap-6">
-          <p className="text-lg font-light tracking-wide text-white/80">Bem-vindo à</p>
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
-            RCC
+        <div className="relative flex flex-col items-center gap-6 text-center">
+          <h1 className="max-w-4xl text-4xl italic tracking-wide text-white sm:text-6xl" style={{ fontFamily: "Georgia, serif" }}>
+            Jesus todo, todo de Jesus
           </h1>
-          <p className="max-w-xl text-base leading-7 text-white/70">
-            Uma única plataforma para conectar pessoas, formação, missões, ministérios e eventos da RCC.
+          <p className="max-w-2xl text-lg leading-8 text-white/80">
+            Plataforma para conectar pessoas, formação, missões, ministérios e retiros da Fraternidade O Caminho.
           </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-            <a
-              href="/inscricao"
-              className="rounded-none border border-white/70 px-6 py-3 text-xs font-medium tracking-widest text-white transition-colors hover:bg-white hover:text-zinc-900"
-            >
-              NOVO POR AQUI?
-            </a>
-            <a
-              href="/sobre"
-              className="rounded-none border border-white/70 px-6 py-3 text-xs font-medium tracking-widest text-white transition-colors hover:bg-white hover:text-zinc-900"
-            >
-              CONHEÇA A RCC
-            </a>
-          </div>
         </div>
       </section>
 
