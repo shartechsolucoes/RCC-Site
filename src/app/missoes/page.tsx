@@ -37,7 +37,12 @@ export default function MissoesPage() {
                 </span>
                 <div>
                   <p className="text-sm font-medium text-zinc-900">{mission.name}</p>
-                  {mission.description && <p className="text-sm text-zinc-500">{mission.description}</p>}
+                  {mission.description && (
+                    <div
+                      className="mt-1 text-sm text-zinc-500 [&_h4]:font-semibold [&_h4]:text-zinc-900 [&_p]:mt-1"
+                      dangerouslySetInnerHTML={{ __html: mission.description }}
+                    />
+                  )}
                 </div>
               </div>
             ))}
