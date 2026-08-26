@@ -1,9 +1,8 @@
-"use client";
-
-import { Eye, Link as LinkIcon, Newspaper } from "lucide-react";
+import { Eye, Newspaper } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -40,46 +39,41 @@ function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-export default function NewsDetailPage() {
-  const params = useParams<{ slug: string }>();
-  const [news, setNews] = useState<NewsItem | null | "not-found">(null);
-  const [otherNews, setOtherNews] = useState<NewsItem[]>([]);
-
-  useEffect(() => {
-    fetch(`${API_URL}/news/public/${params.slug}`)
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then(setNews)
-      .catch(() => setNews("not-found"));
-  }, [params.slug]);
-
-  useEffect(() => {
-    fetch(`${API_URL}/news/public`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((all: NewsItem[]) => setOtherNews(all.filter((item) => item.slug !== params.slug).slice(0, 5)));
-  }, [params.slug]);
-
-  if (news === "not-found") {
-    return (
-      <main className="flex flex-1 flex-col items-center">
-        <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-4 px-6 py-32 text-center">
-          <p className="text-lg font-medium text-zinc-900">Notícia não encontrada</p>
-          <Link href="/noticias" className="text-sm text-amber-600 hover:underline">← Voltar para notícias</Link>
-        </div>
-      </main>
-    );
+async function getNews(slug: string): Promise<NewsItem | null> {
+  try {
+    const res = await fetch(`${API_URL}/news/public/${slug}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
   }
+}
+
+async function getOtherNews(slug: string): Promise<NewsItem[]> {
+  try {
+    const res = await fetch(`${API_URL}/news/public`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const all: NewsItem[] = await res.json();
+    return all.filter((item) => item.slug !== slug).slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
+export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const news = await getNews(slug);
 
   if (!news) {
-    return (
-      <main className="flex flex-1 flex-col">
-        <div className="mx-auto flex w-full max-w-3xl flex-col px-6 py-32">
-          <p className="text-sm text-zinc-500">Carregando...</p>
-        </div>
-      </main>
-    );
+    notFound();
   }
 
-  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+  const otherNews = await getOtherNews(slug);
+
+  const headersList = await headers();
+  const host = headersList.get("host") ?? "";
+  const protocol = headersList.get("x-forwarded-proto") ?? "https";
+  const shareUrl = host ? `${protocol}://${host}/noticias/${news.slug}` : "";
 
   return (
     <main className="flex flex-1 flex-col">
@@ -87,10 +81,10 @@ export default function NewsDetailPage() {
         <Link href="/noticias" className="text-sm text-zinc-400 hover:text-zinc-700">← Notícias</Link>
 
         <div className="flex flex-col gap-2">
-          <span className="w-fit rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+          <span className="w-fit rounded-full bg-[#8a5a2b]/10 px-2.5 py-1 text-xs font-medium text-[#8a5a2b]">
             {news.category.name}
           </span>
-          <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">{news.title}</h1>
+          <h1 className="max-w-3xl text-3xl font-extrabold uppercase tracking-tighter text-zinc-900 sm:text-4xl">{news.title}</h1>
           {news.subtitle && (
             <p className="max-w-2xl text-base leading-7 text-zinc-500">{news.subtitle}</p>
           )}
@@ -108,16 +102,33 @@ export default function NewsDetailPage() {
           </p>
         </div>
 
-        {news.coverImageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={news.coverImageUrl} alt={news.title} className="max-h-[520px] w-full rounded-2xl object-cover" />
-        )}
-
         <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
-          <div
-            className="flex flex-col gap-4 text-base leading-7 text-zinc-700 [&_a]:text-amber-700 [&_a]:underline [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-zinc-900 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-            dangerouslySetInnerHTML={{ __html: news.content }}
-          />
+          <div className="flex flex-col gap-6">
+            {news.coverImageUrl && (
+              // object-contain + fundo desfocado: as capas costumam ser fotos verticais,
+              // e o object-cover anterior recortava ~75% da altura delas.
+              <div className="relative flex h-[320px] justify-center overflow-hidden bg-zinc-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={news.coverImageUrl}
+                  alt=""
+                  aria-hidden
+                  className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={news.coverImageUrl}
+                  alt={news.title}
+                  className="relative h-full w-auto max-w-full object-contain"
+                />
+              </div>
+            )}
+
+            <div
+              className="flex flex-col gap-4 text-base leading-7 text-zinc-700 [&_a]:text-[#8a5a2b] [&_a]:underline [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-zinc-900 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+              dangerouslySetInnerHTML={{ __html: news.content }}
+            />
+          </div>
 
           <aside className="flex flex-col gap-8">
             <div className="flex flex-col gap-3">
@@ -128,7 +139,7 @@ export default function NewsDetailPage() {
                   target="_blank"
                   rel="noreferrer"
                   aria-label="Compartilhar no WhatsApp"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 text-zinc-500 transition-colors hover:border-amber-400 hover:text-amber-600"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 text-zinc-500 transition-colors hover:border-[#8a5a2b] hover:text-[#8a5a2b]"
                 >
                   <WhatsappIcon className="h-4 w-4" />
                 </a>
@@ -137,18 +148,11 @@ export default function NewsDetailPage() {
                   target="_blank"
                   rel="noreferrer"
                   aria-label="Compartilhar no Facebook"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 text-zinc-500 transition-colors hover:border-amber-400 hover:text-amber-600"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 text-zinc-500 transition-colors hover:border-[#8a5a2b] hover:text-[#8a5a2b]"
                 >
                   <FacebookIcon className="h-4 w-4" />
                 </a>
-                <button
-                  type="button"
-                  onClick={() => navigator.clipboard?.writeText(shareUrl)}
-                  aria-label="Copiar link"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 text-zinc-500 transition-colors hover:border-amber-400 hover:text-amber-600"
-                >
-                  <LinkIcon className="h-4 w-4" />
-                </button>
+                <CopyLinkButton url={shareUrl} />
               </div>
             </div>
 
@@ -167,7 +171,7 @@ export default function NewsDetailPage() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="line-clamp-2 text-sm font-medium text-zinc-900 group-hover:text-amber-700">{item.title}</p>
+                        <p className="line-clamp-2 text-sm font-medium text-zinc-900 group-hover:text-[#8a5a2b]">{item.title}</p>
                         {item.publishedAt && (
                           <p className="mt-0.5 text-xs text-zinc-400">{formatDate(item.publishedAt)}</p>
                         )}

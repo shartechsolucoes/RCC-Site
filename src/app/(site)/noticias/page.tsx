@@ -1,8 +1,5 @@
-"use client";
-
 import { Eye, Newspaper } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
@@ -21,25 +18,27 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 }
 
-export default function NoticiasPage() {
-  const [news, setNews] = useState<NewsItem[] | null>(null);
+async function getNews(): Promise<NewsItem[]> {
+  try {
+    const res = await fetch(`${API_URL}/news/public`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
 
-  useEffect(() => {
-    fetch(`${API_URL}/news/public`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then(setNews);
-  }, []);
+export default async function NoticiasPage() {
+  const news = await getNews();
 
   return (
     <main className="flex flex-1 flex-col">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-24">
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">Notícias</h1>
+        <h1 className="text-3xl font-extrabold uppercase tracking-tighter text-zinc-900">Notícias</h1>
 
-        {news === null && <p className="text-sm text-zinc-500">Carregando...</p>}
+        {news.length === 0 && <p className="text-sm text-zinc-500">Nenhuma notícia publicada ainda.</p>}
 
-        {news?.length === 0 && <p className="text-sm text-zinc-500">Nenhuma notícia publicada ainda.</p>}
-
-        {news && news.length > 0 && (
+        {news.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {news.map((item) => (
               <Link
@@ -47,16 +46,31 @@ export default function NoticiasPage() {
                 href={`/noticias/${item.slug}`}
                 className="flex flex-col overflow-hidden rounded-2xl border border-zinc-100 transition-shadow hover:shadow-md"
               >
-                <div className="flex h-40 items-center justify-center bg-zinc-100 text-zinc-400">
+                <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-zinc-100 text-zinc-400">
                   {item.coverImageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.coverImageUrl} alt={item.title} className="h-full w-full object-cover" />
+                    <>
+                      {/* Capas costumam ser fotos verticais: a de trás preenche o
+                          quadro desfocada, a da frente aparece inteira. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.coverImageUrl}
+                        alt=""
+                        aria-hidden
+                        className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl"
+                      />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.coverImageUrl}
+                        alt={item.title}
+                        className="relative h-full w-full object-contain"
+                      />
+                    </>
                   ) : (
                     <Newspaper size={28} />
                   )}
                 </div>
                 <div className="flex flex-1 flex-col gap-2 px-5 py-4">
-                  <span className="w-fit rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                  <span className="w-fit rounded-full bg-[#8a5a2b]/10 px-2.5 py-1 text-xs font-medium text-[#8a5a2b]">
                     {item.category.name}
                   </span>
                   <p className="line-clamp-2 text-sm font-semibold text-zinc-900">{item.title}</p>
